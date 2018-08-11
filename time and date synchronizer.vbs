@@ -1,18 +1,16 @@
 Option Explicit
 
 Dim arrDateTime
-Dim blnTest
 Dim dtmDateTime, dtmNewDateTime
-Dim intDateDiff, intOffset, intStatus, intThreshold, intTimeDiff
-dim colItems, objHTTP, objItem, objRE, objWMIService
-Dim strDateTime, strMsg, strURL
+Dim intOffset, intStatus
+dim colItems, objHTTP, objItem, objWMIService
+Dim strDateTime, strURL
 dim dtMonth
 dim ammarnewtime, ammarnewdate, aa, bb
 dim  oShell
 dim theFirstMsgbox, theSecondMsgbox, theInputBox
 
 ' Defaults
-intThreshold = 10
 strURL       = "http://time.windows.com/"
 
 Set oShell = WScript.CreateObject ("Shell.Application")
