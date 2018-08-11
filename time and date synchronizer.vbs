@@ -6,52 +6,15 @@ Dim dtmDateTime, dtmNewDateTime
 Dim intDateDiff, intOffset, intStatus, intThreshold, intTimeDiff
 dim colItems, objHTTP, objItem, objRE, objWMIService
 Dim strDateTime, strLocalDateTime, strMsg, strNewdateTime, strURL
-dim ammarnewtime, ammarnewdate
-dim oshell
+dim dtMonth
+dim ammarnewtime, ammarnewdate, aa, bb
+dim  oShell, ashell, bshell
 ' Defaults
 intThreshold = 10
-strURL       = "http://www.xs4all.nl/"
+strURL       = "http://time.windows.com/"
 
-Set oShell = WScript.CreateObject ("WScript.Shell")
-oShell.run ("cmd.exe /C date 01-01-2018")
-
-' Check command line arguments
-With WScript.Arguments
-	If .Named.Count   > 0 Then Syntax
-	If .Unnamed.Count > 2 Then Syntax
-	If .Unnamed.Count > 0 Then
-		If IsNumeric( .Unnamed(0) ) Then
-			intThreshold = CInt( .Unnamed(0) )
-		Else
-			strURL = .Unnamed(0)
-		End If
-	End If
-	If .Unnamed.Count = 2 Then
-		If IsNumeric( .Unnamed(1) ) Then
-			intThreshold = CInt( .Unnamed(1) )
-		Else
-			strURL = .Unnamed(1)
-		End If
-		' Only 1 argument should be numeric, not both
-		If IsNumeric( .Unnamed(0) ) And IsNumeric( .Unnamed(1) ) Then
-			Syntax
-		End If
-		' 1 argument should be numeric
-		If Not ( IsNumeric( .Unnamed(0) ) Or IsNumeric( .Unnamed(1) ) ) Then
-			Syntax
-		End If
-	End If
-	' Threshold value must be between 0 and 60
-	If intThreshold <  0 Then Syntax
-	If intThreshold > 60 Then Syntax
-	' URL must be a WEB server (full URL including protocol)
-	blnTest = False
-	Set objRE = New RegExp
-	objRE.Pattern = "^https?://.+$"
-	blnTest = objRE.Test( strURL )
-	Set objRE = Nothing
-	If Not blnTest Then Syntax
-End With
+Set oShell = WScript.CreateObject ("Shell.Application")
+oShell.ShellExecute  "cmd.exe", "/c date 08-08-2018" , , "runas", 1
 
 ' Get server time from a web server
 Set objHTTP = CreateObject( "WinHttp.WinHttpRequest.5.1" )
@@ -65,13 +28,13 @@ Set objHTTP = Nothing
 If Err Then Syntax
 On Error Goto 0
 
-' Abort if the server could not be reached
-If intStatus <> 200 Then Syntax
+
 
 ' Convert the returned Apache timestamp string to a date to work with
 arrDateTime = Split( strDateTime, " " )
+dtMonth = monthConvert(arrDateTime(2))
 strDateTime = arrDateTime(1) & " " _
-            & arrDateTime(2) & " " _
+            & dtMonth & " " _
             & arrDateTime(3) & " " _
             & arrDateTime(4)
 dtmDateTime = CDate( strDateTime )
@@ -88,17 +51,9 @@ Set colItems      = objWMIService.ExecQuery( "Select * From Win32_OperatingSyste
 For Each objItem In colItems
 	' Get timezone offset telative to GMT
 	intOffset        = CInt( objItem.CurrentTimeZone )
-	' Get current local system time ("before" time)
-	strLocalDateTime = objItem.LocalDateTime
+	msgbox  (intoffset)
 	' Add offset to GMT to get correct local time
 	dtmNewDateTime   = DateAdd( "n", intOffset, dtmDateTime )
-	' Format date and time string to be used to set new system time
-	strNewdateTime   = Year( dtmNewDateTime ) _
-	                 & Right( "0" & Month(  dtmNewDateTime ), 2 ) _
-	                 & Right( "0" & Day(    dtmNewDateTime ), 2 ) _
-	                 & Right( "0" & Hour(   dtmNewDateTime ), 2 ) _
-	                 & Right( "0" & Minute( dtmNewDateTime ), 2 ) _
-	                 & Right( "0" & Second( dtmNewDateTime ), 2 )
 	
     ammarnewtime = Right( "0" & Hour(   dtmNewDateTime ), 2 ) _
 					 & ":"_
@@ -118,8 +73,14 @@ For Each objItem In colItems
     
 	msgbox (ammarnewtime)
 	msgbox (ammarnewdate)
-	oShell.run ("cmd.exe /C date " & ammarnewdate)
-	oShell.run ("cmd.exe /C time " & ammarnewtime)
+	
+	aa =  ("/C date " & ammarnewdate)
+	bb = ("/C time " & ammarnewtime)
+	
+	Set aShell = CreateObject("Shell.Application")
+	Set bShell = CreateObject("Shell.Application")
+	aShell.ShellExecute "cmd.exe",aa , , "runas", 1
+	bShell.ShellExecute "cmd.exe",bb , , "runas", 1
 	
 Next
 Set colItems      = Nothing
@@ -130,4 +91,60 @@ Sub Syntax( )
 	msgbox "some thing go wrong, check the internet connection or make the cmd run as administrator"
     WScript.Quit 1
 End Sub
+
+function  monthConvert(month)
+
+select case month 
+case "Jan"
+monthConvert = "01"
+case "Feb"
+monthConvert = "02"
+case "Mar"
+monthConvert = "03"
+case "Apr"
+monthConvert = "04"
+case "May"
+monthConvert = "05"
+case "Jun"
+monthConvert = "06"
+case "Jul"
+monthConvert = "07"
+case "Aug"
+monthConvert = "08"
+case "Sep"
+monthConvert = "09"
+case "Oct"
+monthConvert = "10"
+case "Nov"
+monthConvert = "11"
+case "Dec"
+monthConvert = "12"
+
+case "January"
+monthConvert = "01"
+case "February"
+monthConvert = "02"
+case "March"
+monthConvert = "03"
+case "April"
+monthConvert = "04"
+case "June"
+monthConvert = "06"
+case "July"
+monthConvert = "07"
+case "August"
+monthConvert = "08"
+case "September"
+monthConvert = "09"
+case "October"
+monthConvert = "10"
+case "November"
+monthConvert = "11"
+case "December"
+monthConvert = "12"
+
+end select
+
+end function
+
 msgbox "time and date have been updated (ammar dabaan)"
