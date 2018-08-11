@@ -5,10 +5,12 @@ Dim blnTest
 Dim dtmDateTime, dtmNewDateTime
 Dim intDateDiff, intOffset, intStatus, intThreshold, intTimeDiff
 dim colItems, objHTTP, objItem, objRE, objWMIService
-Dim strDateTime, strLocalDateTime, strMsg, strNewdateTime, strURL
+Dim strDateTime, strMsg, strURL
 dim dtMonth
 dim ammarnewtime, ammarnewdate, aa, bb
-dim  oShell, ashell, bshell
+dim  oShell
+dim theFirstMsgbox, theSecondMsgbox, theInputBox
+
 ' Defaults
 intThreshold = 10
 strURL       = "http://time.windows.com/"
@@ -32,11 +34,27 @@ On Error Goto 0
 
 ' Convert the returned Apache timestamp string to a date to work with
 arrDateTime = Split( strDateTime, " " )
+theFirstMsgbox = MsgBox ("if the script show 'CDate' error then chose Yes, if this is your first time you run it chose No", vbYesNo, "Ammar Dab3an")
+
+Select Case theFirstMsgbox
+Case vbYes
+    
 dtMonth = monthConvert(arrDateTime(2))
 strDateTime = arrDateTime(1) & " " _
             & dtMonth & " " _
             & arrDateTime(3) & " " _
             & arrDateTime(4)
+
+Case vbNo
+
+strDateTime = arrDateTime(1) & " " _
+            & arrDateTime(2) & " " _
+            & arrDateTime(3) & " " _
+            & arrDateTime(4)
+
+End Select
+
+
 dtmDateTime = CDate( strDateTime )
 strDateTime = Year( dtmDateTime ) _
             & Right( "0" & Month(  dtmDateTime ), 2 ) _
@@ -49,12 +67,22 @@ strDateTime = Year( dtmDateTime ) _
 Set objWMIService = GetObject( "winmgmts:{(Systemtime)}//./root/CIMV2" )
 Set colItems      = objWMIService.ExecQuery( "Select * From Win32_OperatingSystem" )
 For Each objItem In colItems
+	
+theSecondMsgbox = MsgBox ("Do you want to git your timezone form your system", vbYesNo, "Ammar Dab3an")
+
+Select Case theSecondMsgbox
+Case vbYes
 	' Get timezone offset telative to GMT
 	intOffset        = CInt( objItem.CurrentTimeZone )
-	msgbox  (intoffset)
+Case vbNo
+theInputBox  = InputBox ( "Enter how many minutes do you want to add to the current GMT time, please type only numbers like '60' for an hour or '180' for three hours", "Ammar Dab3an" )
+intOffset        = CInt(theInputBox)
+End Select
+
+
 	' Add offset to GMT to get correct local time
 	dtmNewDateTime   = DateAdd( "n", intOffset, dtmDateTime )
-	
+
     ammarnewtime = Right( "0" & Hour(   dtmNewDateTime ), 2 ) _
 					 & ":"_
 	                 & Right( "0" & Minute( dtmNewDateTime ), 2 ) _
@@ -70,17 +98,14 @@ For Each objItem In colItems
 	                 & Year( dtmNewDateTime )
 	
 	
-    
-	msgbox (ammarnewtime)
-	msgbox (ammarnewdate)
+ 
 	
 	aa =  ("/C date " & ammarnewdate)
 	bb = ("/C time " & ammarnewtime)
 	
-	Set aShell = CreateObject("Shell.Application")
-	Set bShell = CreateObject("Shell.Application")
-	aShell.ShellExecute "cmd.exe",aa , , "runas", 1
-	bShell.ShellExecute "cmd.exe",bb , , "runas", 1
+
+	oShell.ShellExecute "cmd.exe",aa , , "runas", 1
+	oShell.ShellExecute "cmd.exe",bb , , "runas", 1
 	
 Next
 Set colItems      = Nothing
@@ -88,7 +113,7 @@ Set objWMIService = Nothing
 
 
 Sub Syntax( )
-	msgbox "some thing go wrong, check the internet connection or make the cmd run as administrator"
+	msgbox "some thing go wrong, check the internet connection"
     WScript.Quit 1
 End Sub
 
@@ -147,4 +172,4 @@ end select
 
 end function
 
-msgbox "time and date have been updated (ammar dabaan)"
+msgbox "your time and date have been updated (made by Ammar Dab3an)"
